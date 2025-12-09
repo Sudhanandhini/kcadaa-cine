@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import logo from "../assets/images/fav-icon.png"
+import logo from "../assets/images/logo1.jpg"
  
 
 const Footer = () => {
@@ -21,7 +21,7 @@ const Footer = () => {
           <div className="flex justify-center md:justify-start">
             <div className="w-[100px] h-[100px]  flex items-center justify-center">
               {/* Replace with image */}
-              <img src={logo} />
+              <img src={logo} style={{borderRadius:'50px'}}/>
               
             </div>
           </div>

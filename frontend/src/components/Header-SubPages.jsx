@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import logo from "../assets/images/logo.png"
+import logo from "../assets/images/logo1.jpg"
 
 
 const Header = () => {
@@ -47,13 +47,15 @@ const Header = () => {
 
       {/* Header Main */}
       <div className=" bg-primary flex items-center justify-between px-6 py-3">
-        
+
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3">
-          <div className="w-[250px] h-auto  flex items-center justify-center ">
-            <img src={logo} alt="logo"  /> {/* Replace logo file */}
+          <div className="w-[90px] h-auto  flex items-center justify-center " >
+            <img src={logo} alt="logo" style={{ borderRadius: '50px' }} /> {/* Replace logo file */}
           </div>
-          {/* <span className="text-2xl font-bold text-white">KCADAA</span> */}
+          <span className=" text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl">
+            KCADAA
+          </span>
         </Link>
 
         {/* Desktop Navigation */}

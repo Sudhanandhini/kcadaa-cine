@@ -9,7 +9,7 @@ const Hero = ({ title, subtitle }) => {
   // 💡 mobile height first, then grow on bigger screens
   const heightClass = isHome
     ? 'h-[500px] sm:h-[700px] md:h-[800px]'   // HOME
-    : 'h-[500px] sm:h-[500px] md:h-[500px]'; // OTHER PAGES
+    : 'h-[550px] sm:h-[550px] md:h-[550px]'; // OTHER PAGES
 
   return (
     <div className={`relative ${heightClass} text-white`}>
