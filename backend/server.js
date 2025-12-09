@@ -152,12 +152,12 @@ app.get('/api/members/:id', (req, res) => {
 
 // Create member
 app.post('/api/members', authenticateToken, upload.single('image'), (req, res) => {
-  const { name, role, member_id, category, biography, awards, filmography } = req.body;
+  const { name, role, member_id, category, biography, awards, filmography, social_links } = req.body;
   const image = req.file ? `/uploads/${req.file.filename}` : null;
 
-  const query = 'INSERT INTO members (name, role, member_id, category, image, biography, awards, filmography) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+  const query = 'INSERT INTO members (name, role, member_id, category, image, biography, awards, filmography, social_links) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
   
-  db.query(query, [name, role, member_id, category, image, biography, awards, filmography], (err, result) => {
+  db.query(query, [name, role, member_id, category, image, biography, awards, filmography, social_links], (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Database error', details: err });
     }
@@ -167,7 +167,7 @@ app.post('/api/members', authenticateToken, upload.single('image'), (req, res) =
 
 // Update member
 app.put('/api/members/:id', authenticateToken, upload.single('image'), (req, res) => {
-  const { name, role, member_id, category, biography, awards, filmography } = req.body;
+  const { name, role, member_id, category, biography, awards, filmography, social_links } = req.body;
   let image = req.body.existingImage;
 
   if (req.file) {
@@ -181,9 +181,9 @@ app.put('/api/members/:id', authenticateToken, upload.single('image'), (req, res
     }
   }
 
-  const query = 'UPDATE members SET name = ?, role = ?, member_id = ?, category = ?, image = ?, biography = ?, awards = ?, filmography = ? WHERE id = ?';
+  const query = 'UPDATE members SET name = ?, role = ?, member_id = ?, category = ?, image = ?, biography = ?, awards = ?, filmography = ?, social_links = ? WHERE id = ?';
   
-  db.query(query, [name, role, member_id, category, image, biography, awards, filmography, req.params.id], (err) => {
+  db.query(query, [name, role, member_id, category, image, biography, awards, filmography, social_links, req.params.id], (err) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
     }

@@ -177,7 +177,7 @@ const Home = () => {
 
       {/* Board Members Section */}
       <section className="py-12 md:py-16 bg-[#fbf4ec]">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-8xl">
           <p className="text-center text-gray-500 mb-2 text-xs sm:text-sm uppercase tracking-wide">
             our board of
           </p>
@@ -189,7 +189,7 @@ const Home = () => {
             {boardMembers.map((member, index) => (
               <div
                 key={index}
-                className="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col mx-auto w-full max-w-sm"
+                className="bg-white rounded-l shadow-sm overflow-hidden flex flex-col mx-auto w-full max-w-sm"
               >
                 <div
                   className="h-64 sm:h-72 md:h-80 flex items-end justify-center w-full"
@@ -222,122 +222,134 @@ const Home = () => {
 
 
             {/* Committee Members Slider Section */}
-      <section className="py-12 md:py-16 bg-[#fbf4ec]">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <p className="text-center text-gray-500 mb-2 text-xs sm:text-sm uppercase tracking-wide">
-            our committee of
-          </p>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12">
-            MEMBERS
-          </h2>
+     <section className="py-12 md:py-16 bg-[#fbf4ec]">
+  <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-8xl ">
+    <p className="text-center text-gray-500 mb-2 text-xs sm:text-sm uppercase tracking-wide">
+      our committee of
+    </p>
+    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12">
+      MEMBERS
+    </h2>
 
-          {/* Slider Container */}
-          <div className="relative px-6 md:px-10 lg:px-16">
-            {/* Previous Button */}
-            <button
-              onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3
-                         rounded-full border border-gray-300 bg-white shadow-sm
-                         hover:bg-gray-100 transition"
-              aria-label="Previous slide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeWidth={1.8}
-                stroke="currentColor"
-                className="w-4 h-4 md:w-5 md:h-5 text-gray-700"
+    {/* Slider Container */}
+    <div className="relative px-6 md:px-10 lg:px-16">
+      {/* Previous Button */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3
+                   rounded-full border border-gray-300 bg-white shadow-sm
+                   hover:bg-gray-100 transition"
+        aria-label="Previous slide"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          strokeWidth={1.8}
+          stroke="currentColor"
+          className="w-4 h-4 md:w-5 md:h-5 text-gray-700"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      {/* Next Button */}
+      <button
+        onClick={nextSlide}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3
+                   rounded-full border border-gray-300 bg-white shadow-sm
+                   hover:bg-gray-100 transition"
+        aria-label="Next slide"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          strokeWidth={1.8}
+          stroke="currentColor"
+          className="w-4 h-4 md:w-5 md:h-5 text-gray-700"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      {/* Slider Wrapper */}
+      <div className="overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
+          {[0, 1, 2, 3].map((offset) => {
+            const index = (currentSlide + offset) % committeeMembers.length;
+            const member = committeeMembers[index];
+
+            // extra cards hidden on smaller screens
+            const visibilityClasses =
+              offset === 0
+                ? '' // always visible
+                : offset === 1
+                ? 'hidden sm:flex'
+                : offset === 2
+                ? 'hidden lg:flex'
+                : 'hidden lg:flex';
+
+            return (
+              <div
+                key={offset}
+                className={
+                  `bg-white rounded-xl shadow-[0_10px_30px_rgba(15,23,42,0.06)]
+                   overflow-hidden flex flex-col mx-auto w-full max-w-sm ` +
+                  visibilityClasses
+                }
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+                {/* Image */}
+                <div className="w-full bg-[#f7f7f7] flex items-center justify-center px-6 pt-8">
+                  {member.image && (
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full aspect-[3/4] object-cover object-top rounded-l"
+                    />
+                  )}
+                </div>
 
-            {/* Next Button */}
-            <button
-              onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 md:p-3
-                         rounded-full border border-gray-300 bg-white shadow-sm
-                         hover:bg-gray-100 transition"
-              aria-label="Next slide"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeWidth={1.8}
-                stroke="currentColor"
-                className="w-4 h-4 md:w-5 md:h-5 text-gray-700"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-
-            {/* Slider Wrapper */}
-            <div className="overflow-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
-                {[0, 1, 2, 3].map((offset) => {
-                  const index = (currentSlide + offset) % committeeMembers.length;
-                  const member = committeeMembers[index];
-
-                  return (
-                    <div
-                      key={offset}
-                      className="bg-white rounded-3xl shadow-[0_10px_30px_rgba(15,23,42,0.06)]
-                                 overflow-hidden flex flex-col mx-auto w-full max-w-sm"
-                    >
-                      {/* Image */}
-                      <div className="w-full bg-[#f7f7f7] flex items-center justify-center px-6 pt-8">
-                        {member.image && (
-                          <img
-                            src={member.image}
-                            alt={member.name}
-                            className="w-full aspect-[3/4] object-cover object-top rounded-2xl"
-                          />
-                        )}
-                      </div>
-
-                      {/* Text */}
-                      <div className="px-6 pb-6 pt-5 text-left bg-white">
-                        <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-2">
-                          {member.name}
-                        </h3>
-                        <div className="w-16 h-[3px] bg-yellow-400 mb-2" />
-                        <p className="text-gray-500 text-xs sm:text-sm">{member.role}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+                {/* Text */}
+                <div className="px-6 pb-6 pt-5 text-left bg-white">
+                  <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-2">
+                    {member.name}
+                  </h3>
+                  <div className="w-16 h-[3px] bg-yellow-400 mb-2" />
+                  <p className="text-gray-500 text-xs sm:text-sm">{member.role}</p>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Dots Indicator */}
-          <div className="flex justify-center gap-2 mt-8">
-            {committeeMembers.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === index ? 'bg-yellow-400 w-6' : 'bg-gray-300 w-2'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-
-          <div className="text-center mt-8 md:mt-12">
-            <Link
-              to="/members"
-              className="inline-block bg-yellow-400 hover:bg-yellow-500 text-black font-semibold
-                         px-8 py-3 rounded-lg shadow-md transition"
-            >
-              View All Members
-            </Link>
-          </div>
+            );
+          })}
         </div>
-      </section>
+      </div>
+    </div>
 
+    {/* Dots Indicator */}
+    <div className="flex justify-center gap-2 mt-8">
+      {committeeMembers.map((_, index) => (
+        <button
+          key={index}
+          onClick={() => setCurrentSlide(index)}
+          className={`h-2 rounded-full transition-all duration-300 ${
+            currentSlide === index ? 'bg-yellow-400 w-6' : 'bg-gray-300 w-2'
+          }`}
+          aria-label={`Go to slide ${index + 1}`}
+        />
+      ))}
+    </div>
+
+    <div className="text-center mt-8 md:mt-12">
+      <Link
+        to="/members"
+        className="inline-block bg-yellow-400 hover:bg-yellow-500 text-black font-semibold
+                   px-8 py-3 rounded-lg shadow-md transition"
+      >
+        View All Members
+      </Link>
+    </div>
+  </div>
+</section>
 
 
 

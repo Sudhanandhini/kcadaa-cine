@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { membersAPI } from '../services/api';
+import Hero from '../components/Hero';
+import Footer from '../components/Footer';
 
 const AdminDashboard = () => {
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,21 +23,34 @@ const AdminDashboard = () => {
     image: null,
   });
 
-  // Dynamic arrays for awards and filmography
+  // Dynamic arrays
   const [awards, setAwards] = useState(['']);
   const [filmography, setFilmography] = useState([{ year: '', movie: '', role: '' }]);
+  const [socialLinks, setSocialLinks] = useState([{ platform: '', url: '' }]);
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
   useEffect(() => {
-    if (filter === 'all') {
-      setFilteredMembers(members);
-    } else {
-      setFilteredMembers(members.filter(m => m.category === filter));
+    let filtered = members;
+
+    // Filter by category
+    if (filter !== 'all') {
+      filtered = filtered.filter(m => m.category === filter);
     }
-  }, [filter, members]);
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(m => 
+        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.member_id && m.member_id.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    setFilteredMembers(filtered);
+  }, [filter, searchTerm, members]);
 
   const fetchMembers = async () => {
     try {
@@ -83,17 +99,37 @@ const AdminDashboard = () => {
     setFilmography(newFilmography);
   };
 
+  // Social Links handlers
+  const addSocialLinkField = () => {
+    setSocialLinks([...socialLinks, { platform: '', url: '' }]);
+  };
+
+  const removeSocialLinkField = (index) => {
+    const newSocialLinks = socialLinks.filter((_, i) => i !== index);
+    setSocialLinks(newSocialLinks);
+  };
+
+  const updateSocialLink = (index, field, value) => {
+    const newSocialLinks = [...socialLinks];
+    newSocialLinks[index][field] = value;
+    setSocialLinks(newSocialLinks);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Convert awards array to string
+    // Convert arrays to strings
     const awardsString = awards.filter(a => a.trim()).join('\n');
     
-    // Convert filmography array to string
     const filmographyString = filmography
       .filter(f => f.year || f.movie || f.role)
       .map(f => `${f.year}|${f.movie}|${f.role}`)
+      .join('\n');
+
+    const socialLinksString = socialLinks
+      .filter(s => s.platform && s.url)
+      .map(s => `${s.platform}|${s.url}`)
       .join('\n');
 
     const data = new FormData();
@@ -104,6 +140,7 @@ const AdminDashboard = () => {
     data.append('biography', formData.biography);
     data.append('awards', awardsString);
     data.append('filmography', filmographyString);
+    data.append('social_links', socialLinksString);
 
     if (formData.image) {
       data.append('image', formData.image);
@@ -164,6 +201,20 @@ const AdminDashboard = () => {
       setFilmography([{ year: '', movie: '', role: '' }]);
     }
 
+    // Parse social links
+    if (member.social_links) {
+      const socialList = member.social_links.split('\n').filter(s => s.trim()).map(s => {
+        const parts = s.split('|');
+        return {
+          platform: parts[0] || '',
+          url: parts[1] || ''
+        };
+      });
+      setSocialLinks(socialList.length > 0 ? socialList : [{ platform: '', url: '' }]);
+    } else {
+      setSocialLinks([{ platform: '', url: '' }]);
+    }
+
     setShowForm(true);
   };
 
@@ -190,381 +241,487 @@ const AdminDashboard = () => {
     });
     setAwards(['']);
     setFilmography([{ year: '', movie: '', role: '' }]);
+    setSocialLinks([{ platform: '', url: '' }]);
     setEditingMember(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-md">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <Hero
+          title="KARNATAKA CINE ART-DIRECTORS AND ASSISTANTS ASSOCIATION"
+          subtitle="Celebrating Art and Culture Together"
+        />
+
+      {/* Admin Header Bar */}
+      <div className="bg-white shadow-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-800">KCADAA Admin Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
             <button
               onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors font-medium"
             >
               Logout
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm font-medium">Total Members</h3>
-            <p className="text-3xl font-bold text-blue-600">{members.length}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm font-medium">Board Members</h3>
-            <p className="text-3xl font-bold text-green-600">
-              {members.filter(m => m.category === 'board').length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm font-medium">Art Directors</h3>
-            <p className="text-3xl font-bold text-purple-600">
-              {members.filter(m => m.category === 'art-director').length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-gray-600 text-sm font-medium">Asst. Art Directors</h3>
-            <p className="text-3xl font-bold text-orange-600">
-              {members.filter(m => m.category === 'asst-art-director').length}
-            </p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilter('board')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'board' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Board
-              </button>
-              <button
-                onClick={() => setFilter('art-director')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'art-director' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Art Directors
-              </button>
-              <button
-                onClick={() => setFilter('asst-art-director')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'asst-art-director' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Assistants
-              </button>
+      <div className="flex-grow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-gray-600 text-sm font-medium">Total Members</h3>
+              <p className="text-3xl font-bold text-blue-600">{members.length}</p>
             </div>
-            <button
-              onClick={() => {
-                resetForm();
-                setShowForm(true);
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-            >
-              + Add Member
-            </button>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-gray-600 text-sm font-medium">Board Members</h3>
+              <p className="text-3xl font-bold text-green-600">
+                {members.filter(m => m.category === 'board').length}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-gray-600 text-sm font-medium">Art Directors</h3>
+              <p className="text-3xl font-bold text-purple-600">
+                {members.filter(m => m.category === 'art-director').length}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-gray-600 text-sm font-medium">Asst. Art Directors</h3>
+              <p className="text-3xl font-bold text-orange-600">
+                {members.filter(m => m.category === 'asst-art-director').length}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-6">
-                  {editingMember ? 'Edit Member' : 'Add New Member'}
-                </h2>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2">Name *</label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2">Role *</label>
-                      <input
-                        type="text"
-                        value={formData.role}
-                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2">Member ID</label>
-                      <input
-                        type="text"
-                        value={formData.member_id}
-                        onChange={(e) => setFormData({ ...formData, member_id: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-gray-700 font-medium mb-2">Category *</label>
-                      <select
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="board">Board Member</option>
-                        <option value="art-director">Art Director</option>
-                        <option value="asst-art-director">Asst. Art Director</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Profile Image */}
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Profile Image</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          {/* Search and Filter Bar */}
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              {/* Search Input */}
+              <div className="w-full lg:w-96">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, role, or ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <svg
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
-                    {editingMember?.image && (
-                      <p className="text-sm text-gray-600 mt-1">Current: {editingMember.image}</p>
-                    )}
-                  </div>
-
-                  {/* Biography */}
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">Biography</label>
-                    <textarea
-                      value={formData.biography}
-                      onChange={(e) => setFormData({ ...formData, biography: e.target.value })}
-                      rows="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter member biography..."
-                    ></textarea>
-                  </div>
-
-                  {/* Awards Section */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-gray-700 font-medium">Awards</label>
-                      <button
-                        type="button"
-                        onClick={addAwardField}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        + Add Award
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {awards.map((award, index) => (
-                        <div key={index} className="flex gap-2">
-                          <input
-                            type="text"
-                            value={award}
-                            onChange={(e) => updateAward(index, e.target.value)}
-                            placeholder={`Award ${index + 1}`}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          {awards.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeAwardField(index)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Filmography Section */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="block text-gray-700 font-medium">Filmography</label>
-                      <button
-                        type="button"
-                        onClick={addFilmographyField}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        + Add Film
-                      </button>
-                    </div>
-                    <div className="space-y-3">
-                      {filmography.map((film, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
-                            <div>
-                              <label className="block text-sm text-gray-600 mb-1">Year</label>
-                              <input
-                                type="text"
-                                value={film.year}
-                                onChange={(e) => updateFilmography(index, 'year', e.target.value)}
-                                placeholder="2000"
-                                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm text-gray-600 mb-1">Movie</label>
-                              <input
-                                type="text"
-                                value={film.movie}
-                                onChange={(e) => updateFilmography(index, 'movie', e.target.value)}
-                                placeholder="Movie Name"
-                                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm text-gray-600 mb-1">Worked As</label>
-                              <input
-                                type="text"
-                                value={film.role}
-                                onChange={(e) => updateFilmography(index, 'role', e.target.value)}
-                                placeholder="Art Director"
-                                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </div>
-                          </div>
-                          {filmography.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeFilmographyField(index)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                            >
-                              Remove Film
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Submit Buttons */}
-                  <div className="flex gap-4 pt-4">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors disabled:bg-blue-300"
-                    >
-                      {loading ? 'Saving...' : editingMember ? 'Update Member' : 'Add Member'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowForm(false);
-                        resetForm();
-                      }}
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+                  </svg>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Members Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMembers.map((member) => (
-                <tr key={member.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                      {member.image ? (
-                        <img
-                          src={`http://localhost:5000${member.image}`}
-                          alt={member.name}
-                          className="w-full h-full object-cover"
+              {/* Filter Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setFilter('board')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === 'board' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Board
+                </button>
+                <button
+                  onClick={() => setFilter('art-director')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === 'art-director' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Art Directors
+                </button>
+                <button
+                  onClick={() => setFilter('asst-art-director')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === 'asst-art-director' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Assistants
+                </button>
+              </div>
+
+              {/* Add Button */}
+              <button
+                onClick={() => {
+                  resetForm();
+                  setShowForm(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors whitespace-nowrap"
+              >
+                + Add Member
+              </button>
+            </div>
+
+            {/* Search Results Count */}
+            {searchTerm && (
+              <div className="mt-4 text-sm text-gray-600">
+                Found {filteredMembers.length} result{filteredMembers.length !== 1 ? 's' : ''} for "{searchTerm}"
+              </div>
+            )}
+          </div>
+
+          {/* Form Modal */}
+          {showForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+              <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold mb-6">
+                    {editingMember ? 'Edit Member' : 'Add New Member'}
+                  </h2>
+
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Name *</label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                          </svg>
-                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Role *</label>
+                        <input
+                          type="text"
+                          value={formData.role}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Member ID</label>
+                        <input
+                          type="text"
+                          value={formData.member_id}
+                          onChange={(e) => setFormData({ ...formData, member_id: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 font-medium mb-2">Category *</label>
+                        <select
+                          value={formData.category}
+                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        >
+                          <option value="board">Board Member</option>
+                          <option value="art-director">Art Director</option>
+                          <option value="asst-art-director">Asst. Art Director</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Profile Image */}
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Profile Image</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {editingMember?.image && (
+                        <p className="text-sm text-gray-600 mt-1">Current: {editingMember.image}</p>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">{member.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{member.role}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{member.member_id || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      member.category === 'board' ? 'bg-green-100 text-green-800' :
-                      member.category === 'art-director' ? 'bg-purple-100 text-purple-800' :
-                      'bg-orange-100 text-orange-800'
-                    }`}>
-                      {member.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => handleEdit(member)}
-                      className="text-blue-600 hover:text-blue-800 mr-3"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(member.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
 
-          {filteredMembers.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No members found
+                    {/* Biography */}
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Biography</label>
+                      <textarea
+                        value={formData.biography}
+                        onChange={(e) => setFormData({ ...formData, biography: e.target.value })}
+                        rows="4"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter member biography..."
+                      ></textarea>
+                    </div>
+
+                    {/* Social Links Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-gray-700 font-medium">Social Links</label>
+                        <button
+                          type="button"
+                          onClick={addSocialLinkField}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          + Add Link
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {socialLinks.map((link, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                              <div>
+                                <label className="block text-sm text-gray-600 mb-1">Platform</label>
+                                <select
+                                  value={link.platform}
+                                  onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Select Platform</option>
+                                  <option value="Facebook">Facebook</option>
+                                  <option value="Instagram">Instagram</option>
+                                  <option value="Twitter">Twitter</option>
+                                  <option value="LinkedIn">LinkedIn</option>
+                                  <option value="YouTube">YouTube</option>
+                                  <option value="Website">Website</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm text-gray-600 mb-1">URL</label>
+                                <input
+                                  type="url"
+                                  value={link.url}
+                                  onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
+                                  placeholder="https://..."
+                                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                            </div>
+                            {socialLinks.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeSocialLinkField(index)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                              >
+                                Remove Link
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Awards Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-gray-700 font-medium">Awards</label>
+                        <button
+                          type="button"
+                          onClick={addAwardField}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          + Add Award
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {awards.map((award, index) => (
+                          <div key={index} className="flex gap-2">
+                            <input
+                              type="text"
+                              value={award}
+                              onChange={(e) => updateAward(index, e.target.value)}
+                              placeholder={`Award ${index + 1}`}
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {awards.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeAwardField(index)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Filmography Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-gray-700 font-medium">Filmography</label>
+                        <button
+                          type="button"
+                          onClick={addFilmographyField}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          + Add Film
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {filmography.map((film, index) => (
+                          <div key={index} className="border border-gray-200 rounded-lg p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+                              <div>
+                                <label className="block text-sm text-gray-600 mb-1">Year</label>
+                                <input
+                                  type="text"
+                                  value={film.year}
+                                  onChange={(e) => updateFilmography(index, 'year', e.target.value)}
+                                  placeholder="2000"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm text-gray-600 mb-1">Movie</label>
+                                <input
+                                  type="text"
+                                  value={film.movie}
+                                  onChange={(e) => updateFilmography(index, 'movie', e.target.value)}
+                                  placeholder="Movie Name"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm text-gray-600 mb-1">Worked As</label>
+                                <input
+                                  type="text"
+                                  value={film.role}
+                                  onChange={(e) => updateFilmography(index, 'role', e.target.value)}
+                                  placeholder="Art Director"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                            </div>
+                            {filmography.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeFilmographyField(index)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                              >
+                                Remove Film
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Submit Buttons */}
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors disabled:bg-blue-300"
+                      >
+                        {loading ? 'Saving...' : editingMember ? 'Update Member' : 'Add Member'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForm(false);
+                          resetForm();
+                        }}
+                        className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-3 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           )}
+
+          {/* Members Table */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMembers.map((member) => (
+                    <tr key={member.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                          {member.image ? (
+                            <img
+                              src={`http://localhost:5000${member.image}`}
+                              alt={member.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap font-medium">{member.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{member.role}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{member.member_id || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          member.category === 'board' ? 'bg-green-100 text-green-800' :
+                          member.category === 'art-director' ? 'bg-purple-100 text-purple-800' :
+                          'bg-orange-100 text-orange-800'
+                        }`}>
+                          {member.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleEdit(member)}
+                          className="text-blue-600 hover:text-blue-800 mr-3 font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(member.id)}
+                          className="text-red-600 hover:text-red-800 font-medium"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredMembers.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                {searchTerm ? `No members found matching "${searchTerm}"` : 'No members found'}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
