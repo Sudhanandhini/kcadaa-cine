@@ -42,7 +42,7 @@ const AdminDashboard = () => {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(m => 
+      filtered = filtered.filter(m =>
         m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (m.member_id && m.member_id.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -121,7 +121,7 @@ const AdminDashboard = () => {
 
     // Convert arrays to strings
     const awardsString = awards.filter(a => a.trim()).join('\n');
-    
+
     const filmographyString = filmography
       .filter(f => f.year || f.movie || f.role)
       .map(f => `${f.year}|${f.movie}|${f.role}`)
@@ -247,10 +247,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-    <Hero
-          title="KARNATAKA CINE ART-DIRECTORS AND ASSISTANTS ASSOCIATION"
-          subtitle="Celebrating Art and Culture Together"
-        />
+      <Hero
+        title="KARNATAKA CINE ART-DIRECTORS AND ASSISTANTS ASSOCIATION"
+        subtitle="Celebrating Art and Culture Together"
+      />
 
       {/* Admin Header Bar */}
       <div className="bg-white shadow-md border-b border-gray-200">
@@ -270,7 +270,7 @@ const AdminDashboard = () => {
       <div className="flex-grow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-gray-600 text-sm font-medium">Total Members</h3>
               <p className="text-3xl font-bold text-blue-600">{members.length}</p>
@@ -279,6 +279,12 @@ const AdminDashboard = () => {
               <h3 className="text-gray-600 text-sm font-medium">Board Members</h3>
               <p className="text-3xl font-bold text-green-600">
                 {members.filter(m => m.category === 'board').length}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-gray-600 text-sm font-medium">Committee</h3>
+              <p className="text-3xl font-bold text-teal-600">
+                {members.filter(m => m.category === 'committee').length}
               </p>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
@@ -341,6 +347,14 @@ const AdminDashboard = () => {
                   }`}
                 >
                   Board
+                </button>
+                <button
+                  onClick={() => setFilter('committee')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === 'committee' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Committee
                 </button>
                 <button
                   onClick={() => setFilter('art-director')}
@@ -410,6 +424,7 @@ const AdminDashboard = () => {
                           value={formData.role}
                           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., President, Committee Member, Art Director"
                           required
                         />
                       </div>
@@ -433,10 +448,18 @@ const AdminDashboard = () => {
                           required
                         >
                           <option value="board">Board Member</option>
+                          <option value="committee">Committee Member</option>
                           <option value="art-director">Art Director</option>
                           <option value="asst-art-director">Asst. Art Director</option>
                         </select>
                       </div>
+                    </div>
+
+                    {/* Helper text for roles */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Note:</strong> For Board Members category, use roles: "Honorable President", "President", "General Secretary", or "Treasurer". All other roles in Board category will appear as Committee Members.
+                      </p>
                     </div>
 
                     {/* Profile Image */}
@@ -686,6 +709,7 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           member.category === 'board' ? 'bg-green-100 text-green-800' :
+                          member.category === 'committee' ? 'bg-teal-100 text-teal-800' :
                           member.category === 'art-director' ? 'bg-purple-100 text-purple-800' :
                           'bg-orange-100 text-orange-800'
                         }`}>

@@ -1,66 +1,82 @@
 import Hero from '../components/Hero';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { membersAPI } from '../services/api';
 
 const Members = () => {
   const [activeTab, setActiveTab] = useState('board');
+  const [boardMembers, setBoardMembers] = useState([]);
+  const [committeeMembers, setCommitteeMembers] = useState([]);
+  const [artDirectors, setArtDirectors] = useState([]);
+  const [assistantArtDirectors, setAssistantArtDirectors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const boardMembers = [
-    { name: 'Sashidhara Adapa B', role: 'Honorable President', id: '06' },
-    { name: 'Ravi S A', role: 'President', id: '23' },
-    { name: 'Mallikarjun', role: 'General Secretary', id: '' },
-    { name: 'Vishwas C S', role: 'Treasurer', id: '' },
-  ];
+  useEffect(() => {
+    fetchAllMembers();
+  }, []);
 
-  const committeeMembers = [
-    { name: 'Suresh M. Baganavar', role: 'Committee Member', id: '' },
-    { name: 'Vasantarao M Kulkarni', role: 'Committee Member', id: '' },
-    { name: 'Mohan S Pandit', role: 'Committee Member', id: '' },
-    { name: 'A. Sateesh', role: 'Committee Member', id: '' },
-  ];
+  const fetchAllMembers = async () => {
+    setLoading(true);
+    try {
+      // Fetch board members
+      const boardResponse = await membersAPI.getAll('board');
+      setBoardMembers(boardResponse.data);
 
-  const artDirectors = [
-    { name: 'BABU KHAN', role: 'Art Director', id: '04' },
-    { name: 'SASHIDHARA ADAPA B', role: 'Art Director', id: '06' },
-    { name: 'HOSMANE MURTHY', role: 'Art Director', id: '13' },
-    { name: 'ARUN KUMAR', role: 'Art Director', id: '14' },
-    { name: 'RAMESH DESAI', role: 'Art Director', id: '015' },
-    { name: 'RAGHAVENDRA P', role: 'Art Director', id: '16' },
-  ];
+      // Fetch committee members
+      const committeeResponse = await membersAPI.getAll('committee');
+      setCommitteeMembers(committeeResponse.data);
 
-  const assistantArtDirectors = [
-    { name: 'SUNDARMURTHY V', role: 'Asst. Art Director', id: '05' },
-    { name: 'NARAYANA SWAMY', role: 'Asst. Art Director', id: '10' },
-    { name: 'NARENDRA KUMAR K', role: 'Asst. Art Director', id: '19' },
-    { name: 'RAGHAVENDRA RAO', role: 'Asst. Art Director', id: '20' },
-    { name: 'PRAKASH B', role: 'Asst. Art Director', id: '22' },
-    { name: 'SHAJI JOHNSON', role: 'Asst. Art Director', id: '24' },
-  ];
+      // Fetch art directors
+      const artDirectorsResponse = await membersAPI.getAll('art-director');
+      setArtDirectors(artDirectorsResponse.data);
+
+      // Fetch assistant art directors
+      const assistantResponse = await membersAPI.getAll('asst-art-director');
+      setAssistantArtDirectors(assistantResponse.data);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const MemberCard = ({ member }) => (
-    <div className="text-center">
-      <div className="w-48 h-48 mx-auto mb-4 bg-gray-200 rounded-lg overflow-hidden shadow-md">
-        <div className="w-full h-full flex items-center justify-center bg-gray-300">
-          <svg className="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
-        </div>
+    <div 
+      className="text-center cursor-pointer transform transition-transform hover:scale-105"
+      onClick={() => navigate(`/member/${member.id}`)}
+    >
+      <div className="w-48 h-48 mx-auto mb-4 bg-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+        {member.image ? (
+          <img
+            src={`http://localhost:5000${member.image}`}
+            alt={member.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-300">
+            <svg className="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+          </div>
+        )}
       </div>
       <h3 className="font-bold text-lg">{member.name}</h3>
       <p className="text-gray-600">{member.role}</p>
-      {member.id && <p className="text-sm text-gray-500">ID: {member.id}</p>}
+      {member.member_id && <p className="text-sm text-gray-500">ID: {member.member_id}</p>}
     </div>
   );
 
   return (
     <div>
-       <Hero
-  title="KARNATAKA CINE ART-DIRECTORS <br/> AND ASSISTANTS ASSOCIATION"
-  subtitle="Celebrating Art and Culture Together"
-/>
+      <Hero
+        title="KARNATAKA CINE ART-DIRECTORS <br/> AND ASSISTANTS ASSOCIATION"
+        subtitle="Celebrating Art and Culture Together"
+      />
 
       {/* Introduction */}
       <section className="py-16 bg-white">
-        <div className="container-custom">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Our Members</h2>
           <p className="text-gray-700 text-center max-w-4xl mx-auto leading-relaxed">
             The desire and Creativity of our members make us who we are – a vibrant and artistic
@@ -72,8 +88,8 @@ const Members = () => {
 
       {/* Tabs */}
       <section className="py-8 bg-gray-50">
-        <div className="container-custom">
-          <div className="flex justify-center space-x-4 mb-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <div className="flex justify-center space-x-4 mb-8 flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('board')}
               className={`px-6 py-2 rounded font-semibold transition-colors ${
@@ -106,65 +122,88 @@ const Members = () => {
             </button>
           </div>
 
-          {/* Board Members */}
-          {activeTab === 'board' && (
-            <div>
-              <p className="text-center text-gray-600 mb-2">our board of</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">MEMBERS</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-                {boardMembers.map((member, index) => (
-                  <MemberCard key={index} member={member} />
-                ))}
-              </div>
-
-              <p className="text-center text-gray-600 mb-2">our committee of</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">MEMBERS</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {committeeMembers.map((member, index) => (
-                  <MemberCard key={index} member={member} />
-                ))}
-              </div>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+              <p className="mt-4 text-gray-600">Loading members...</p>
             </div>
-          )}
+          ) : (
+            <>
+              {/* Board Members Tab */}
+              {activeTab === 'board' && (
+                <div>
+                  {/* Board Members Section */}
+                  {boardMembers.length > 0 && (
+                    <>
+                      <p className="text-center text-gray-600 mb-2">our board of</p>
+                      <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">MEMBERS</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                        {boardMembers.map((member) => (
+                          <MemberCard key={member.id} member={member} />
+                        ))}
+                      </div>
+                    </>
+                  )}
 
-          {/* Art Directors */}
-          {activeTab === 'artDirectors' && (
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">ART DIRECTORS</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-8">
-                {artDirectors.map((member, index) => (
-                  <MemberCard key={index} member={member} />
-                ))}
-                {/* Placeholder cards */}
-                {[...Array(18)].map((_, index) => (
-                  <MemberCard
-                    key={`placeholder-${index}`}
-                    member={{ name: 'Name', role: 'Designation', id: '' }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+                  {/* Committee Members Section */}
+                  {committeeMembers.length > 0 && (
+                    <>
+                      <p className="text-center text-gray-600 mb-2">our committee of</p>
+                      <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">MEMBERS</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {committeeMembers.map((member) => (
+                          <MemberCard key={member.id} member={member} />
+                        ))}
+                      </div>
+                    </>
+                  )}
 
-          {/* Assistant Art Directors */}
-          {activeTab === 'assistants' && (
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-                ASSISTANT ART DIRECTORS
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-8">
-                {assistantArtDirectors.map((member, index) => (
-                  <MemberCard key={index} member={member} />
-                ))}
-                {/* Placeholder cards */}
-                {[...Array(18)].map((_, index) => (
-                  <MemberCard
-                    key={`placeholder-${index}`}
-                    member={{ name: 'Name', role: 'Designation', id: '' }}
-                  />
-                ))}
-              </div>
-            </div>
+                  {boardMembers.length === 0 && committeeMembers.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      No members found
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Art Directors Tab */}
+              {activeTab === 'artDirectors' && (
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">ART DIRECTORS</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                    {artDirectors.map((member) => (
+                      <MemberCard key={member.id} member={member} />
+                    ))}
+                  </div>
+
+                  {artDirectors.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      No art directors found
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Assistant Art Directors Tab */}
+              {activeTab === 'assistants' && (
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+                    ASSISTANT ART DIRECTORS
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                    {assistantArtDirectors.map((member) => (
+                      <MemberCard key={member.id} member={member} />
+                    ))}
+                  </div>
+
+                  {assistantArtDirectors.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      No assistant art directors found
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

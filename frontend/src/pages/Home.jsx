@@ -147,7 +147,7 @@ const Home = () => {
       </section>
 
       {/* What We Do Section */}
-      <section className="py-12 md:py-16 bg-white">
+      <section className="pt-4 pb-12 md:pt-4  md:pb-16  bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12">
             WHAT WE DO

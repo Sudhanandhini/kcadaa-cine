@@ -74,6 +74,7 @@ const AdminLogin = () => {
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
+          <p>admin:  admin123</p>
         </form>
       </div>
     </div>

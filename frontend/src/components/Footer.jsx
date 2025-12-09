@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import logo from "../assets/images/logo1.jpg"
- 
+import logo from "../assets/images/logo1.jpg";
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -14,20 +13,20 @@ const Footer = () => {
 
   return (
     <footer className="bg-primary text-white">
-      <div className="container-custom pt-12 pb-8 ">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-10 mt-8">
+      <div className="container-custom pt-12 pb-8">
 
-          {/* Logo Left */}
-          <div className="flex justify-center md:justify-start">
-            <div className="w-[100px] h-[100px]  flex items-center justify-center">
-              {/* Replace with image */}
-              <img src={logo} style={{borderRadius:'50px'}}/>
-              
+        {/* 12-col grid for BOTH rows */}
+        <div className="grid gap-10 md:gap-y-14 md:gap-x-10 md:grid-cols-12">
+
+          {/* Row 1 - Logo (4 col) */}
+          <div className="col-span-12 md:col-span-4 flex justify-center md:justify-start">
+            <div className="w-[100px] h-[100px] flex items-center justify-center">
+              <img src={logo} style={{ borderRadius: '50px' }} />
             </div>
           </div>
 
-          {/* Newsletter Right */}
-          <div className="w-full max-w-3xl md:text-left text-center">
+          {/* Row 1 - Newsletter (8 col) */}
+          <div className="col-span-12 md:col-span-8 w-full md:text-left text-center">
             <h3 className="text-lg font-bold tracking-wide uppercase">
               OUR NEWSLETTER!
             </h3>
@@ -56,13 +55,8 @@ const Footer = () => {
             </form>
           </div>
 
-        </div>
-
-
-        {/* Middle Columns */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* Explore */}
-          <div>
+          {/* Row 2 - Explore (4 col) */}
+          <div className="col-span-12 md:col-span-4 mt-8 md:mt-0">
             <h4 className="text-sm font-bold uppercase tracking-widest">
               Explore
             </h4>
@@ -104,8 +98,8 @@ const Footer = () => {
             </nav>
           </div>
 
-          {/* Contact Info */}
-          <div>
+          {/* Row 2 - Contact Info (4 col) */}
+          <div className="col-span-12 md:col-span-4 mt-8 md:mt-0">
             <h4 className="text-sm font-bold uppercase tracking-widest">
               Contact Info
             </h4>
@@ -130,8 +124,8 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Social Media */}
-          <div>
+          {/* Row 2 - Social Media (4 col) */}
+          <div className="col-span-12 md:col-span-4 mt-8 md:mt-0">
             <h4 className="text-sm font-bold uppercase tracking-widest">
               Social Media
             </h4>
@@ -171,12 +165,8 @@ const Footer = () => {
         </div>
 
         {/* Bottom line + copyright */}
-
-
         <div className="mt-4 border-t border-white/30 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-
-            {/* Left Side */}
             <p className="text-xs text-center md:text-left">
               Copyright © 2025 Karnataka Cine Art Directors and Assistants association® |
               <a
@@ -185,17 +175,17 @@ const Footer = () => {
               >
                 Privacy Policy
               </a>
-
             </p>
 
-            {/* Right Side */}
             <p className="text-xs text-center md:text-right mt-2 md:mt-0">
               Developed by
-              <a href="https://sunsys.in/" className="hover:text-accent transition-colors ml-1">
+              <a
+                href="https://sunsys.in/"
+                className="hover:text-accent transition-colors ml-1"
+              >
                 Sunsys Technologies
               </a>
             </p>
-
           </div>
         </div>
 
